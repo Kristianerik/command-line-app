@@ -11,14 +11,25 @@ struct Cli {
 fn main() -> io::Result<()> {
     let args = Cli::parse();
     let file = File::open(&args.path).expect("could not open file");
-    let reader = io::BufReader::new(file);
+    
+    match file {
+        Ok(file) => {
+            let reader = io::BufReader::new(file);
 
-    for line in reader.lines() {
-        let line = line?;
-        if line.contains(&args.pattern) {
-            println!("{}", line);
+            for line in reader.lines() {
+                match line {
+                    Ok(content) => {
+                        if content.contains(&args.pattern) {
+                            println!("{}", content);
+                        }
+                    }
+                    Err(error) => println!("Error reading line: {}", error),
+                }
+            }
+        }
+        Err(error) => {
+            println!("Oh noes: {}", error);
         }
     }
-
-    Ok(())
+   
 }
