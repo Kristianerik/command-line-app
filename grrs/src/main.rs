@@ -17,14 +17,15 @@ struct Cli {
 }
 
 // Function to make `find_matches` reusable and testable
-fn find_matches(content: &str, pattern: &str, mut writer: impl Write) {
+fn find_matches(content: &str, pattern: &str) -> Vec<String> {
+    let mut results = Vec::new();
     for line in content.lines() {
         if line.contains(pattern) {
-            writeln!(writer, "{}", line).expect("failed to write to output");
+            results.push(line.to_string());
         }
     }
+    results
 }
-
 
 fn main() -> io::Result<()> {
     let args = Cli::parse();
@@ -39,22 +40,30 @@ fn main() -> io::Result<()> {
     // Re-open file because `.count()` consumed the iterator
     let file = File::open(&args.path)?;
     let reader = io::BufReader::new(file);
-    let stdout = io::stdout();
-    let mut handle = stdout.lock();
 
+    let mut matches = Vec::new();
+
+    // Iterate through the lines, collecting matches
     for line in reader.lines() {
         match line {
             Ok(content) => {
-                find_matches(&content, &args.pattern, &mut handle);
+                let found_matches = find_matches(&content, &args.pattern);
+                matches.extend(found_matches);
             }
             Err(error) => {
-                writeln!(handle, "Error reading line: {}", error)?;
+                eprintln!("Error reading line: {}", error);
             }
         }
         pb.inc(1); // Update progress bar
     }
 
-    pb.finish_with_message("Search complete!");
+    pb.finish_with_message("Processing complete."); // Finish with a message to show it's done
+    io::stdout().flush()?; // Make sure to flush the output
+
+    // Print matches after the progress bar is finished
+    for m in matches {
+        println!("{}", m);
+    }
+
     Ok(())
 }
-   

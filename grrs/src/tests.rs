@@ -7,8 +7,7 @@ fn check_answer_validity() {
 }
 
 #[test]
-fn find_a_match() {
-    let mut result = Vec::new();
-    find_matches("lorem ipsum\ndolor sit amet", "lorem", &mut result);
-    assert_eq!(result, b"lorem ipsum\n");
- }
+fn test_find_matches() {
+    let result = find_matches("lorem ipsum\ndolor sit amet", "lorem");
+    assert_eq!(result, vec!["lorem ipsum"]);
+}
